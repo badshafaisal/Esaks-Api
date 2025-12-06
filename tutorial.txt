@@ -1,0 +1,526 @@
+
+1.prothome laravel install korte hobe :composer create-project laravel/laravel role-based-auth-api
+
+
+2.code a dhuke .env file edit korte hobe :
+APP_NAME='Laravel Role Based Auth'
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=role_based_auth
+DB_USERNAME=root
+DB_PASSWORD=123456
+SESSION_DOMAIN=localhost
+
+3. api install korte hobe: php artisan install:api
+
+4.cors publish korte hobe:php artisan config:publish cors
+5.cors file a geya 'supports_credentials' => true, korte hobe.
+6.sanctum.php file a geya localhost:5173,localhost:4173 add korte hobe.
+full code hobe
+'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+        '%s%s',
+        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,localhost:5173,localhost:4173',
+        Sanctum::currentApplicationUrlWithPort(),
+        // Sanctum::currentRequestHost(),
+    ))),
+7.terminal a user Roler jonno enum make korte hobe:php artisan make:enum Enums/UserRole
+8.app/Enums/UserRole er moddhe Role set korte hobe
+
+<?php
+
+namespace App\Enums;
+
+enum UserRole:string
+{
+    case ADMIN ='admin';
+    case EDITOR ='editor';
+}
+
+9.Model er moddhe first_name last_name and role set protected casts() er moddhe UserRole set korte hobe
+
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Enums\UserRole;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'role'
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'role'=>UserRole::class,
+        ];
+    }
+}
+
+10.migration a create users a role and firstname last name update korte hobe
+jemon 
+Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->enum('role',[
+                UserRole::ADMIN->value,
+                UserRole::EDITOR->value,
+            ]);
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+
+
+11.database er moddhe seeder create korte hobe and admin hishebe create hobe migrate korar shathe shathe
+<?php
+
+namespace Database\Seeders;
+
+use App\Enums\UserRole;
+use App\Models\User;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        // User::factory(10)->create();
+
+        DB::table('users')->insert([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john.admin@example.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
+            'remember_token' => Str::random(10),
+            'role' => UserRole::ADMIN,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+}
+
+12.er por php artisan migrate:fresh --seed deya database fresh kore tarpor
+tarpor seeding korbe.. and data base ekta row create hobe 
+
+13.erpor php artisan make:controller AuthController deya ekta controller create kore nite hobe.
+
+14. open auth controller and create a login and logout function
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+
+class AuthController extends Controller
+{
+    public function login(Request $request)
+    {
+        $fields = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+            'remember' => 'boolean',
+        ]);
+
+        $credentials = [
+            'email' => $fields['email'],
+            'password' => $fields['password'],
+        ];
+
+        if (!Auth::attempt($credentials, $fields['remember'])) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect'],
+            ]);
+        }
+
+        session()->regenerate();
+
+        return response()->json([
+            'message' => 'Successfully logged in',
+            'user' => Auth::user(),
+        ]);
+    }
+
+    public function logout()
+    {
+        Auth::guard('web')->logout();
+
+        session()->invalidate();
+        session()->regenerate();
+
+        return response('Logged out', 204);
+    }
+}
+
+
+15.er por routes/api er modde login and log out er Routes set korte hobe.
+
+<?php
+
+use App\Http\Controllers\AuthController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+// auth
+Route::post('/login', [AuthController::class, 'login'])->middleware('web');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+16.er por bootstrap/app.php er moddhe geya $middleware->statefulApi(); add korte hobe
+fule code thik emon hobe;
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+
+
+
+
+17. php artisan serve kore post man a test koret hobe. kintu porthome login korte gele hobe \namedMock
+kaorn post man cooki and sesson handle kore na jar karoneketa script add korte hobe.
+tar age 
+*Auth name ekta folder create korte hobe 
+*method post hobe;
+*header a geya key= accept and value application/json ;
+*kintu send korle kono data ase be na ;
+*er jono Auth folder er  script a jete hobe;
+*tarpor pre-request a geya nicer code ta add korte hobe;
+
+pm.sendRequest('http://localhost:8000/sanctum/csrf-cookie', (error, response) => {
+    let xsrfCookie = response.headers.find(header =>
+        header.key.toLowerCase() === 'set-cookie' &&
+        header.value.includes('XSRF-TOKEN')
+    );
+    if (xsrfCookie) {
+        let xsrfToken = decodeURIComponent(xsrfCookie.value.split(';')[0].split('=')[1]);
+        pm.request.headers.add({
+            key: 'X-XSRF-TOKEN',
+            value: xsrfToken,
+        });
+        pm.request.headers.add({
+            key: 'Referer',
+            value: 'http://localhost',
+        });
+    }
+});
+
+*eta add korar por 
+{
+    "email":"john.admin@example.com",
+    "password":"password",
+    "remember":false
+    
+}
+ai json ta body er moddhe raw te geya pest kore http://localhost:8000/api/login send korley login hoya jabe.
+
+18.er por http://localhost:8000/api/logout post method a send korle 1 response asbe er mane logout complet.
+19.http://localhost:8000/api/user deya login user data get kora jabe. tobe obosshoy login thaka lagebe.
+
+
+
+20. er por ekta apiresource UserController create korte hobe.php artisan make:controller UserController --api
+21.UserController a index er moddhe all user set korar jonno 
+return response()->json(User::latest()->paginate(10));
+eta use korte hobe
+22.than store er moddhe data store korar code dite hobe 
+
+ $fields = $request->validate([
+            'first_name' => 'string|required',
+            'last_name' => 'string|required',
+            'email' => 'email|required|unique:users',
+            'password' => 'string|required|min:8',
+            'role' => ['required', Rule::enum(UserRole::class)],
+        ]);
+
+        $resource = User::create($fields);
+
+        return response()->json([
+            'success' => true,
+            'data' => $resource,
+        ]);
+        
+23.post man e ekta user folder create krote hobe.. tarpor shekane 
+session cookie set korar script dite hobe jeta upore dewa ache or auth er script er moddhe pawa jabe 
+tarpor get method a Get all user name eya http://localhost:8000/api/users ai api ke get deya set korte hobe 
+
+
+24. api.php te apiresource set korte hobe Route::apiResource('users', UserController::class)->middleware('auth:sanctum');
+tahole post mane all user data dekha jabe..
+
+25. er por post method a user create o kora jabe er jonno new ekta connection create 
+kore json body te 
+{
+    "first_name": "Ruhul",
+    "last_name": "Amin",
+    "email": "ruhul.a@random.com",
+    "password": "password",
+    "role": "editor"
+  }
+
+  eta dya send korley new user create hoya jabe obosshoy login thaka lagbe.
+
+26.er por single data show korar jonno UserController upadate korte hobe
+
+public function show(string $id)
+    {
+        $resource = User::find($id);
+
+        if (!$resource) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $resource,
+        ]);
+    }
+then er por http://localhost:8000/api/users/4 ai vabe request pathale data chole asbe;
+
+27. update er jonno update function add korte hobe
+public function update(Request $request, string $id)
+    {
+        $resource = User::find($id);
+
+        if (!$resource) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+
+        $fields = $request->validate([
+            'first_name' => 'string|required',
+            'last_name' => 'string|required',
+            'password' => 'nullable|string|min:8',
+            'role' => ['required', Rule::enum(UserRole::class)],
+        ]);
+
+        if (empty($fields['password'])) {
+            unset($fields['password']);
+        }
+
+        $resource->update($fields);
+
+        return response()->json([
+            'success' => true,
+            'data' => $resource,
+        ]);
+    }
+
+post man a put method a request pathate hobe:put http://localhost:8000/api/users/4
+
+28. erpor delete function update korte hobe 
+
+ public function destroy(string $id)
+    {
+         $resource = User::find($id);
+
+        if (!$resource) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+
+        $resource->delete();
+
+        return response(status: 204);
+    }
+
+method : delete api =http://localhost:8000/api/users/3
+
+ei muhurte UserController er full code holo
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\UserRole;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class UserController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return response()->json(User::latest()->paginate(10));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+         $fields = $request->validate([
+            'first_name' => 'string|required',
+            'last_name' => 'string|required',
+            'email' => 'email|required|unique:users',
+            'password' => 'string|required|min:8',
+            'role' => ['required', Rule::enum(UserRole::class)],
+        ]);
+
+        $resource = User::create($fields);
+
+        return response()->json([
+            'success' => true,
+            'data' => $resource,
+        ]);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $resource = User::find($id);
+
+        if (!$resource) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $resource,
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $resource = User::find($id);
+
+        if (!$resource) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+
+        $fields = $request->validate([
+            'first_name' => 'string|required',
+            'last_name' => 'string|required',
+            'password' => 'nullable|string|min:8',
+            'role' => ['required', Rule::enum(UserRole::class)],
+        ]);
+
+        if (empty($fields['password'])) {
+            unset($fields['password']);
+        }
+
+        $resource->update($fields);
+
+        return response()->json([
+            'success' => true,
+            'data' => $resource,
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+         $resource = User::find($id);
+
+        if (!$resource) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+
+        $resource->delete();
+
+        return response(status: 204);
+    }
+}
+
+

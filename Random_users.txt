@@ -1,0 +1,142 @@
+[
+  {
+    "first_name": "Ayesha",
+    "last_name": "Sultana",
+    "email": "ayesha.s@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Kamal",
+    "last_name": "Hossain",
+    "email": "kamal.h@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Fariha",
+    "last_name": "Rahman",
+    "email": "fariha.r@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Ruhul",
+    "last_name": "Amin",
+    "email": "ruhul.a@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Nusrat",
+    "last_name": "Jahan",
+    "email": "nusrat.j@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Tariq",
+    "last_name": "Mahmud",
+    "email": "tariq.m@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Dilara",
+    "last_name": "Begum",
+    "email": "dilara.b@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Shakil",
+    "last_name": "Ahmed",
+    "email": "shakil.a@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Jannatul",
+    "last_name": "Ferdous",
+    "email": "jannatul.f@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Asif",
+    "last_name": "Iqbal",
+    "email": "asif.i@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Sanjana",
+    "last_name": "Chowdhury",
+    "email": "sanjana.c@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Mizanur",
+    "last_name": "Rahman",
+    "email": "mizanur.r@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Priya",
+    "last_name": "Sarkar",
+    "email": "priya.s@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Fahim",
+    "last_name": "Khan",
+    "email": "fahim.k@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Laila",
+    "last_name": "Akter",
+    "email": "laila.a@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Imran",
+    "last_name": "Hassan",
+    "email": "imran.h@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Sabina",
+    "last_name": "Yasmin",
+    "email": "sabina.y@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Nayeem",
+    "last_name": "Uddin",
+    "email": "nayeem.u@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Tahmina",
+    "last_name": "Khatun",
+    "email": "tahmina.k@random.com",
+    "password": "password",
+    "role": "editor"
+  },
+  {
+    "first_name": "Javed",
+    "last_name": "Ali",
+    "email": "javed.a@random.com",
+    "password": "password",
+    "role": "editor"
+  }
+]
